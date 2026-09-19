@@ -1,6 +1,6 @@
 # v0.1 implementation requirements
 
-The [original handoff](../DO_IT_UP_BRO_CODEX_HANDOFF.md) is the baseline. This
+The [original handoff](DO_IT_UP_BRO_CODEX_HANDOFF.md) is the baseline. This
 addendum records the user's subsequent scope and evidence-driven boundaries.
 
 ## Herdr addition (2026-09-18)
