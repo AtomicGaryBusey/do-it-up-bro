@@ -24,7 +24,10 @@ directory below the run ID. This prevents accidental shared working-directory
 conflicts; it is **not** an OS-level confidentiality boundary. Codex/Grok use
 read-only sandbox profiles. Grok additionally restricts tool selection to readers,
 disables subagents/web, uses a reader profile with no inherited MCP, and bounds
-model rounds to 12. Claude uses restricted mode, strict MCP configuration, no
+model rounds to 12. Grok 1.0.34 refuses to start when `--sandbox read-only` cannot
+apply (Docker Desktop `docker.sock` symlink on this machine). `[providers.grok]
+sandbox = false` passes `--sandbox off`; tool restrictions remain. Do not treat
+`--sandbox off` as isolation. Claude uses restricted mode, strict MCP configuration, no
 permission prompts, no skill expansion or session persistence, and explicit
 read/search tools. Kimi loads an enforced read/search custom agent. Both Google
 harnesses remain gated. Grok's sandbox can fail open; it is supplementary to tool

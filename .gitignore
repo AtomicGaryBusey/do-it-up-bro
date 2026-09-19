@@ -8,3 +8,4 @@ build/
 dist/
 .dub/
 DUB.toml
+.DS_Store

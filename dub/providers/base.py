@@ -81,6 +81,7 @@ def build_command(
     effort: str | None = None,
     *,
     prompt_file: str | None = None,
+    sandbox: bool = True,
 ) -> list[str]:
     provider = PROVIDERS[provider_key]
     if not provider.headless:
@@ -126,7 +127,9 @@ def build_command(
             args += ["--effort", effort]
         return args + ["--", prompt]
     if provider_key == "grok":
-        args = [command, "--no-auto-update", "--sandbox", "read-only", "--output-format", "json"]
+        args = [command, "--no-auto-update", "--output-format", "json"]
+        # Explicit profile: omitting the flag still honors [sandbox] profile in Grok config.
+        args += ["--sandbox", "read-only" if sandbox else "off"]
         args += [
             "--tools",
             "read_file,grep,list_dir",

@@ -40,6 +40,11 @@ command = "agy"
 enabled = true
 command = "grok"
 # effort = "high"  # none/minimal/low/medium/high/xhigh/max; model support varies
+# sandbox = true   # --sandbox read-only. Set false to pass --sandbox off when
+#                  # the read-only profile cannot apply (Grok 1.0.34 fail-closes
+#                  # on a Docker Desktop docker.sock symlink). Omitting the flag
+#                  # is not enough: Grok config can still select read-only.
+#                  # Tool allowlist, reader agent, and dontAsk remain required.
 
 [providers.kimi]
 enabled = true

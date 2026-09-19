@@ -56,6 +56,7 @@ def plan(config, goal, mode="federate", task_class="general", *, check_compatibi
                     "command": os.path.abspath(shutil.which(command)),
                     "model_requested": settings.model,
                     "effort_requested": settings.effort,
+                    "sandbox": settings.sandbox,
                     "capabilities": list(provider.federation_capabilities),
                     "native_capabilities": list(provider.capabilities),
                     "compatibility": "compatible" if check_compatibility else "unchecked",
@@ -72,6 +73,7 @@ def plan(config, goal, mode="federate", task_class="general", *, check_compatibi
             work_order(goal, assignment),
             model=assignment["model_requested"],
             effort=assignment["effort_requested"],
+            sandbox=assignment.get("sandbox", True),
         )
     return {
         "goal": redact(goal),
@@ -229,6 +231,7 @@ def run(config, goal, mode="federate", task_class="general", cancellation=None):
                 prompt,
                 model=assignment["model_requested"],
                 effort=assignment["effort_requested"],
+                sandbox=assignment.get("sandbox", True),
                 **(
                     {"prompt_file": str(directory / "work-order.txt")} if provider == "grok" else {}
                 ),

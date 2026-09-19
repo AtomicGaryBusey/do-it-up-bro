@@ -20,9 +20,13 @@ grok plugin install /private/tmp/dub-grok
 
 The Grok installation command changes host plugin state; run it intentionally.
 The exporter only writes the destination you specify and does not register,
-install, or invoke a host model. Grok's exported plugin contains a reader agent
-and a skill. Claude's contains a skill. Both copy the canonical DUB source and
-embed that host's adapter. They do not include an unvalidated campaign workflow.
+install, or invoke a host model. Grok's exported plugin contains a reader agent,
+a skill, and a copy of `workflows/dub-campaign.rhai`. Grok plugin discovery does
+not load `workflows/` from a plugin; copy that file into `.grok/workflows/` or
+`~/.grok/workflows/` (this repo already has `.grok/workflows/dub-campaign.rhai`).
+Claude's export contains a skill. Both copy the canonical DUB source and embed
+that host's adapter. The campaign workflow passed native `validate_only` on two
+canned-host paths; it is not a live-tool proof and does not merge changes.
 
 Existing output is a conflict (exit 1). `--force` archives the exact old output
 beside it as a `.tar.gz` backup before replacement; the returned `backup` is the

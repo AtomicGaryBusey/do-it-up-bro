@@ -20,6 +20,9 @@ class ConfigTests(unittest.TestCase):
         config = self.parse("[dub]\nmax_parallel_providers=2\n[providers.kimi]\nenabled=false\n")
         self.assertFalse(config.providers["kimi"].enabled)
         self.assertEqual(config.max_parallel_providers, 2)
+        grok = self.parse("[providers.grok]\nsandbox=false\n")
+        self.assertFalse(grok.providers["grok"].sandbox)
+        self.assertTrue(load_config("DUB.toml.example").providers["grok"].sandbox)
 
     def test_invalid_and_misspelled_config(self):
         for content in (
@@ -30,6 +33,7 @@ class ConfigTests(unittest.TestCase):
             "[providers.unknown]\nenabled=true",
             "[dub]\nmax_parallel=3",
             '[providers.codex]\nenabled="yes"',
+            "[providers.claude]\nsandbox=false",
             '[install]\nstrategy="symlink"',
             'dub="not a table"',
         ):
