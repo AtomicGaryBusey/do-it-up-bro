@@ -32,6 +32,7 @@ packages = ["dub", "dub.providers"]
 "share/dub/adapters/grok" = ["adapters/grok/*.md"]
 "share/dub/adapters/kimi" = ["adapters/kimi/*.md"]
 "share/dub/adapters/herdr" = ["adapters/herdr/*.md"]
+"share/dub/adapters/shared" = ["adapters/shared/*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

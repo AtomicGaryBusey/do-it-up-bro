@@ -10,21 +10,15 @@ from dub.providers.base import build_command, detect
 
 
 class DetectionTests(unittest.TestCase):
-    def test_antigravity_detected_without_an_unverified_version_probe(self):
+    def test_antigravity_version_probe_remains_federation_gated(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "agy"
-            path.write_text("#!/bin/sh\nexit 99\n")
+            path.write_text('#!/bin/sh\n[ "$1" = "--version" ] || exit 99\necho 1.2.7\n')
             path.chmod(0o755)
-            with (
-                patch.dict(os.environ, {"PATH": folder}),
-                patch(
-                    "dub.providers.base.subprocess.run",
-                    side_effect=AssertionError("no agy version probe"),
-                ),
-            ):
+            with patch.dict(os.environ, {"PATH": folder}):
                 rows = {row["provider"]: row for row in detect(Config())}
             self.assertTrue(rows["agy"]["installed"])
-            self.assertEqual(rows["agy"]["version"], "unknown")
+            self.assertEqual(rows["agy"]["version"], "1.2.7")
             self.assertFalse(rows["google"]["installed"])
             self.assertFalse(rows["agy"]["headless"])
             with self.assertRaises(ValueError):

@@ -22,10 +22,10 @@ its skill before installing the host CLI.
 | Provider | Personal skill base | Project skill base |
 | --- | --- | --- |
 | Codex | `~/.agents/skills` | `.agents/skills` |
-| Claude | `~/.claude/skills` | `.claude/skills` |
+| Claude | `~/.claude/skills` or `$CLAUDE_CONFIG_DIR/skills` | `.claude/skills` |
 | Gemini | `~/.gemini/skills` | `.gemini/skills` |
 | Antigravity (`agy`) | `~/.gemini/antigravity-cli/skills` | `.agents/skills` |
-| Grok | `~/.grok/skills` | `.grok/skills` |
+| Grok | `~/.grok/skills` or `$GROK_HOME/skills` | `.grok/skills` |
 | Kimi | `~/.kimi-code/skills` or `$KIMI_CODE_HOME/skills` | `.kimi-code/skills` |
 
 Each destination is `BASE/do-it-up-bro`. `--dry-run` makes no directories or
@@ -41,9 +41,22 @@ Conflicts also exit 1 in `--dry-run`; setup scripts using `set -e` must handle t
 
 For Antigravity CLI use `dub install --provider agy`, not `--provider google`.
 The latter installs for Gemini. Antigravity and Codex share the project skill
-directory, so installing both there produces a conflict rather than replacing
-the first adapter. Personal installs use separate directories. Doctor recognizes
-`agy` but leaves its version unknown because installed help exposes no version probe.
+directory. New project installs include both host adapters behind a shared
+selection entrypoint. A byte-identical second install returns `already-installed`;
+modified or older bundles remain conflicts. Personal installs remain host-specific.
+Doctor probes `agy --version`; `dub doctor --project .` checks project skills too.
+
+Relocated home variables also reach only their corresponding federation worker.
+Relative locations resolve before the worker changes directory. Explicit project
+destinations take precedence over personal-home overrides. API-key variables are
+not forwarded; saved subscription login must exist in the selected root.
+
+Grok users can run `grok inspect --json` to inspect the discovered skill's
+`source.path`. If a foreign Codex/Claude adapter is selected through compatibility
+discovery, preview then deliberately reinstall with
+`dub install --provider grok --force`. Claude watches skill changes; a restart is
+not normally needed there. See [plugin exports](plugins.md) for optional portable
+Claude/Grok bundles without changing personal host configuration.
 
 Configuration defaults to `./DUB.toml`; use `dub --config /path/DUB.toml ...` to
 select another. Relative run and executable paths resolve beside that config.

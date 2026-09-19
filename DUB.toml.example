@@ -11,6 +11,7 @@ strategy = "copy"
 enabled = true
 # Writes a handoff addressed to this host; does not automatically invoke a judge.
 synthesis_provider = "codex"
+# Grok-only installations can choose "grok" instead; no automatic judge call.
 
 [providers.codex]
 enabled = true
@@ -21,6 +22,8 @@ command = "codex"
 [providers.claude]
 enabled = true
 command = "claude"
+# Restricted workers ignore ordinary Claude settings; choose explicit overrides.
+# effort = "high"  # low/medium/high/xhigh/max; ultracode is native-only
 
 [providers.google]
 enabled = true
@@ -36,8 +39,10 @@ command = "agy"
 [providers.grok]
 enabled = true
 command = "grok"
+# effort = "high"  # none/minimal/low/medium/high/xhigh/max; model support varies
 
 [providers.kimi]
 enabled = true
 command = "kimi"
 # Federation uses the bundled Read/Grep/Glob-only agent.
+# model = "your-configured-alias"  # alias in Kimi config, not a frozen model ID

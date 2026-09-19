@@ -9,6 +9,9 @@ Maximize useful quality and throughput from available capacity: spend inference 
 
 ## Start
 
+When invoked as a host command, trailing arguments are the goal and may include
+`--campaign` or `--federate`; these select protocol modes, not shell commands.
+
 Interpret `Do it up, Bro: <goal>` as authorization to delegate substantial independent work within that goal. Use actual native subagents when available; never describe sequential role-play as independent agents. This instruction explicitly requests delegation where it creates value. Preserve the user's task scope, permission boundaries, budget, and stopping instructions.
 
 Read `references/host-adapter.md` if installed. It describes the current host, not universal guarantees. If absent, inspect the host's available tools and help; use supported primitives and disclose missing capabilities. Do not invent flags, models, teams, or effort controls.

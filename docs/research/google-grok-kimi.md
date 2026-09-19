@@ -28,8 +28,12 @@ inspected separately during research. Unsupported flags fail at CLI parsing;
 missing required flags must prevent launching that provider. CLI flags do not
 neutralize administrator policy, user hooks, or every external integration.
 
-Gaps: no guaranteed ordinary Grok subagent concurrency ceiling, stable Grok
-hand-authored workflow API schema, generic Kimi effort CLI flag, or automatic Kimi
+The installed Grok `/create-workflow` skill documents `agent()`, `parallel()`,
+`phase()`, and `complete()` with `validate_only` through the native workflow
+tool. This corrects the earlier claim that no hand-authored schema was found.
+No standalone offline workflow validator was found in this execution surface,
+so no DUB Rhai file has been shipped. Other gaps: no guaranteed ordinary Grok
+subagent concurrency ceiling, generic Kimi effort CLI flag, or automatic Kimi
 worktree switch was established. No provider billing amount or subscription
 entitlement is inferred. Google policy documentation contains conflicting tier
 numbers in examples; depend on documented precedence, not those example numbers.

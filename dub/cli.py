@@ -20,6 +20,7 @@ def main(argv: list[str] | None = None) -> int:
     commands = parser.add_subparsers(dest="action", required=True)
     diagnostic = commands.add_parser("doctor", help="Detect CLIs without paid calls")
     diagnostic.add_argument("--json", action="store_true")
+    diagnostic.add_argument("--project", type=Path, help="Also check this project's skill install")
     installer = commands.add_parser("install", help="Copy protocol and host adapter")
     installer.add_argument("--provider", choices=["all", *PROVIDERS], default="all")
     installer.add_argument(
@@ -29,6 +30,11 @@ def main(argv: list[str] | None = None) -> int:
     installer.add_argument(
         "--force", action="store_true", help="Replace existing entry, preserving a backup"
     )
+    plugin = commands.add_parser("plugin", help="Export an optional native plugin bundle")
+    plugin.add_argument("--provider", required=True, choices=["claude", "grok"])
+    plugin.add_argument("--output", required=True, type=Path)
+    plugin.add_argument("--dry-run", action="store_true")
+    plugin.add_argument("--force", action="store_true", help="Archive an existing output first")
     federation = commands.add_parser("federate", help="Run independent analysis work orders")
     federation.add_argument("goal")
     federation.add_argument("--dry-run", action="store_true")
@@ -48,7 +54,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         config = load_config(args.config)
         if args.action == "doctor":
-            rows = doctor(config)
+            rows = doctor(config, project=args.project)
             if args.json:
                 print(json.dumps(rows, indent=2))
             else:
@@ -61,6 +67,11 @@ def main(argv: list[str] | None = None) -> int:
                     )
                     if row["reason"]:
                         print(f"  {row['reason']}")
+                    print(f"  Federation compatibility: {row.get('compatibility', 'unchecked')}")
+                    if row.get("compatibility_reason"):
+                        print(f"  {row['compatibility_reason']}")
+                    if args.project is not None:
+                        print(f"  Project skill: {row['project_skill_installed']}")
         elif args.action == "install":
             selected = (
                 [args.provider]
@@ -81,6 +92,15 @@ def main(argv: list[str] | None = None) -> int:
             if any(row["action"] == "error" for row in results):
                 return 2
             if any(row["action"] == "conflict" for row in results):
+                return 1
+        elif args.action == "plugin":
+            from dub.plugins import export_plugin
+
+            result = export_plugin(
+                args.provider, args.output, dry_run=args.dry_run, force=args.force
+            )
+            print(redact(json.dumps(result, indent=2)))
+            if result["action"] == "conflict":
                 return 1
         elif args.action == "herdr":
             from dub.herdr import plan as herdr_plan

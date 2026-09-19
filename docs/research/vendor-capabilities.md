@@ -7,10 +7,10 @@ documentation-backed interfaces, not claims of successful paid execution.
 | Vendor / harness | Native DUB | Federation v0.1 | Local metadata |
 | --- | --- | --- | --- |
 | OpenAI Codex | Subagents, role models/effort, worktrees | `codex exec`, read-only sandbox | 0.155.1 |
-| Anthropic Claude Code | Subagents, workflows, experimental teams | `claude -p`, read/search tools only; no teams | 2.1.277 |
+| Anthropic Claude Code | Subagents, workflows, experimental teams | restricted `claude -p`, read/search tools only; no teams | 2.1.277 |
 | Google Gemini CLI | Skills and subagents | Gated pending safe policy verification | Not found |
-| Google Antigravity CLI (`agy`) | Separate installer; skills/subagents/worktrees | Not enabled | Detected; version unknown (no verified probe) |
-| xAI Grok Build | Subagents and Rhai workflows | `grok -p`, read-only sandbox | 1.0.34 |
+| Google Antigravity CLI (`agy`) | Separate installer; skills/subagents/worktrees | Not enabled | 1.2.7 via `agy --version` |
+| xAI Grok Build | Subagents and Rhai workflows | `grok -p`, reader profile and allowlist; sandbox supplementary | 1.0.34 |
 | Moonshot Kimi Code | Skills, isolated agents, AgentSwarm | `kimi -p`, enforced read/search agent | 2.0.1 |
 | Herdr (transport) | Routes phrase to an existing host agent | Separate `dub herdr` command | 0.9.1 |
 
@@ -26,10 +26,10 @@ Detailed evidence:
 - [Google/xAI/Moonshot research](google-grok-kimi.md)
 - [Herdr research](herdr.md)
 
-Doctor only asks for version metadata and reports auth as `unknown`. Model/effort
+Doctor asks for version and required help metadata and reports auth as `unknown`. Model/effort
 levels depend on installed CLI and account; unset overrides inherit host defaults.
 No DUB default freezes a model name. Installed CLIs may predate docs; unknown flags
-fail in that provider and do not trigger a permissive fallback. Google is gated
+cause that provider to be skipped before live launch and do not trigger a permissive fallback. Google is gated
 because current docs establish a misleading headless plan-mode safety assumption,
 not because Google lacks a CLI. Provider hooks, integrations, and administrator
 policies remain part of the user's trusted local CLI setup.

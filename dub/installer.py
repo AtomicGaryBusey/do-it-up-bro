@@ -9,14 +9,16 @@ from pathlib import Path
 
 from dub.assets import asset_root
 from dub.providers.base import PROVIDERS
+from dub.security import PROVIDER_HOME_VARIABLES
 
 
 def skill_destination(
     provider: str, *, project: Path | None = None, home: Path | None = None
 ) -> Path:
     base = project if project is not None else (home or Path.home())
-    if provider == "kimi" and project is None and home is None and os.environ.get("KIMI_CODE_HOME"):
-        return Path(os.environ["KIMI_CODE_HOME"]).expanduser() / "skills/do-it-up-bro"
+    variable = PROVIDER_HOME_VARIABLES.get(provider)
+    if project is None and home is None and variable and os.environ.get(variable):
+        return Path(os.environ[variable]).expanduser().absolute() / "skills/do-it-up-bro"
     definition = PROVIDERS[provider]
     directory = (
         definition.project_skill_directory
@@ -36,26 +38,44 @@ def install(
 ) -> dict:
     root = asset_root()
     source = root / "skills/do-it-up-bro"
-    adapter = root / "adapters" / provider / "README.md"
+    shared = project is not None and provider in {"codex", "agy"}
+    adapter = root / "adapters" / ("shared" if shared else provider) / "README.md"
     if not adapter.is_file():
         raise FileNotFoundError(f"Missing packaged adapter: {provider}")
     destination = skill_destination(provider, project=project, home=home)
     exists = destination.exists() or destination.is_symlink()
+    manifest = {str(path.relative_to(source)): path for path in source.rglob("*") if path.is_file()}
+    manifest["references/host-adapter.md"] = adapter
+    if shared:
+        for host in ("codex", "agy"):
+            manifest[f"references/{host}-host-adapter.md"] = root / "adapters" / host / "README.md"
     result = {
         "provider": provider,
         "destination": str(destination),
         "action": "replace-with-backup" if exists and force else "copy",
         "dry_run": dry_run,
-        "files": sorted(
-            str(path.relative_to(source)) for path in source.rglob("*") if path.is_file()
-        )
-        + ["references/host-adapter.md"],
+        "files": sorted(manifest),
     }
     # Do not follow redirected installation roots into unexpected trees.
     for parent in (destination.parent, *destination.parents):
         if parent.is_symlink():
             raise ValueError(f"Refusing symlink installation ancestor: {parent}")
     if exists and not force:
+        # A byte-identical shared bundle serves both hosts; never absorb edits,
+        # extra files, or symlinks as an automatic provider upgrade.
+        if shared and destination.is_dir() and not destination.is_symlink():
+            paths = list(destination.rglob("*"))
+            existing = {str(p.relative_to(destination)) for p in paths if p.is_file()}
+            if (
+                not any(p.is_symlink() for p in paths)
+                and existing == set(manifest)
+                and all(
+                    (destination / name).read_bytes() == src.read_bytes()
+                    for name, src in manifest.items()
+                )
+            ):
+                result["action"] = "already-installed"
+                return result
         result["action"] = "conflict"
         result["reason"] = "Already exists; --force preserves the old entry outside skill discovery"
         return result
@@ -73,6 +93,9 @@ def install(
         shutil.copytree(source, staging, dirs_exist_ok=True)
         (staging / "references").mkdir(exist_ok=True)
         shutil.copy2(adapter, staging / "references/host-adapter.md")
+        for name, src in manifest.items():
+            if name.endswith("-host-adapter.md"):
+                shutil.copy2(src, staging / name)
         if exists:
             stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
             backup_root.mkdir(parents=True, exist_ok=True)

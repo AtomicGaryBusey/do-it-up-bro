@@ -12,6 +12,49 @@ from dub.supervisor import capture, plan, run
 
 
 class SupervisorTests(unittest.TestCase):
+    def setUp(self):
+        probe = patch(
+            "dub.supervisor.probe_compatibility",
+            return_value={"compatible": True, "reason": "test fake"},
+        )
+        probe.start()
+        self.addCleanup(probe.stop)
+
+    def test_live_preflight_skips_incompatible_without_creating_run(self):
+        with (
+            tempfile.TemporaryDirectory() as directory,
+            patch(
+                "dub.supervisor.probe_compatibility",
+                return_value={"compatible": False, "reason": "missing required flag"},
+            ),
+            patch("dub.supervisor.capture", side_effect=AssertionError("must not launch")),
+        ):
+            with self.assertRaisesRegex(ValueError, "missing required flag"):
+                run(self.config(directory), "test")
+            self.assertFalse((Path(directory) / "runs").exists())
+
+    def test_provider_home_reaches_actual_child(self):
+        import os
+
+        with (
+            tempfile.TemporaryDirectory() as directory,
+            patch.dict(os.environ, {"KIMI_CODE_HOME": directory}),
+        ):
+            result = capture(
+                [sys.executable, "-c", "import os; print(os.environ.get('KIMI_CODE_HOME'))"],
+                directory,
+                3,
+                provider="kimi",
+            )
+            self.assertEqual(result["stdout"].strip(), directory)
+
+    def test_claude_grace_drains_result_but_keeps_timeout(self):
+        code = "import signal,time; signal.signal(signal.SIGINT, lambda *a: (print('finished',flush=True), exit(0))); print('ready',flush=True); time.sleep(30)"
+        with tempfile.TemporaryDirectory() as directory:
+            result = capture([sys.executable, "-c", code], directory, 0.5, grace_seconds=1)
+            self.assertEqual(result["status"], "timeout")
+            self.assertIn("finished", result["stdout"])
+
     def test_cancellation_cleans_children_and_finalizes_ledger(self):
         cancellation = threading.Event()
         timer = threading.Timer(0.15, cancellation.set)
@@ -136,7 +179,7 @@ class SupervisorTests(unittest.TestCase):
     def test_launches_independent_providers_concurrently(self):
         barrier = threading.Barrier(2, timeout=3)
 
-        def fake_capture(*args):
+        def fake_capture(*args, **kwargs):
             barrier.wait()
             return {
                 "status": "completed",

@@ -11,20 +11,22 @@ The Python distribution contains no runtime dependencies:
 | Component | Responsibility |
 | --- | --- |
 | `config.py` | Strict TOML loading, relative-path resolution, inherited model defaults |
-| `providers/base.py` | Five vendors; distinct Gemini and Antigravity harness contracts |
-| `assets.py`, `installer.py` | Checkout/wheel assets, staged copy, conflicts and backups |
-| `doctor.py` | Version-only diagnostics; auth remains unknown |
+| `providers/base.py` | Six provider contracts, safe worker commands and local help probes |
+| `assets.py`, `installer.py`, `plugins.py` | Checkout/wheel assets, staged skill or plugin export, conflicts and backups |
+| `doctor.py` | Version/help diagnostics and optional project skill check; auth remains unknown |
 | `router.py` | Task-class role ordering, capability preferences, deterministic ties |
 | `supervisor.py` | Separate working directories, bounded concurrent subprocess roots |
 | `security.py` | Environment allowlist and best-effort artifact redaction |
 | `ledger.py` | SQLite run/task records; unobserved metadata is NULL |
+| `telemetry.py` | Validated Claude/Grok numeric usage and error envelope parsing |
 | `adjudicator.py` | Structured manifest and explicit host synthesis handoff |
 | `herdr.py` | Single-target native Herdr prompt transport, no automatic retry |
 
 Providers remain a small shared registry rather than five empty wrapper classes.
 Routing considers supported headless availability first, then task priorities,
-campaign workflow capability, effort availability/request, configured models for
-implementation, and subagent capability for scouting. Ties rotate by task class
+effective federation capability, effort availability/request, and configured
+models for implementation. Interactive workflow and subagent capabilities are
+recorded separately and do not influence restricted worker routing. Ties rotate by task class
 and mode, not vendor reputation. A history argument reserves an extension point;
 there are no learned quality claims. Capability preferences describe hosts, not
 a promise that restricted federation roots can exercise every native feature.
@@ -35,7 +37,9 @@ Campaign changes role preference and records mode, while full checkpoint/resume
 semantics remain in the host skill. The outer runner is intentionally not a
 second agent runtime or autonomous patch integrator.
 
-Run completion is process completion. `verification_result=not_performed` and
+Run completion requires process exit success and no recognized error result from
+Claude/Grok. `verification_result=not_performed` and
 `synthesis_status=awaiting_host_synthesis` remain explicit. Token usage, model,
-and effort observed from vendor output are NULL until a trustworthy parser is
-implemented; raw redacted output is available for inspection.
+and effort observed remain NULL unless validated and reported by a provider.
+Claude/Grok numeric usage and model rows are parsed when present; effort is still
+unknown. Raw redacted output is available for inspection.

@@ -41,8 +41,10 @@ it preserves a backup outside skill discovery.
 
 Use `--project .` from the intended repository, or provide its absolute path, for
 project-local installation. Codex and Antigravity share the project destination
-`.agents/skills/do-it-up-bro` and therefore collide. Prefer personal installs when
-using both; `--force` replaces the adapter rather than combining hosts. Installation
+`.agents/skills/do-it-up-bro`: new project installs contain both adapters and a
+host-selection entrypoint. Installing the second host is a no-op when the bundle
+is identical. Older or modified bundles still require deliberate `--force` with a
+backup. Installation
 copies the skill and adapter without editing host settings. [Installation details](docs/installing.md).
 
 Then open your target repository in the host: for example, `cd /path/to/project`
@@ -79,20 +81,26 @@ limitations, and local versions.
 | Host | `--provider` key | Native protocol | Local federation |
 | --- | --- | --- | --- |
 | OpenAI Codex | `codex` | Skills, subagents, model/effort roles | Read-only `codex exec` |
-| Anthropic Claude Code | `claude` | Subagents, workflows; experimental interactive teams | Print mode with read/search tools |
+| Anthropic Claude Code | `claude` | Subagents and workflows | Restricted print mode with read/search tools |
 | Google Gemini CLI | `google` | Skills and subagents | Gated pending safe policy verification |
 | Google Antigravity CLI | `agy` | Skills and native subagents | Not enabled |
-| xAI Grok Build | `grok` | Subagents and native workflows | Print mode with read-only sandbox |
+| xAI Grok Build | `grok` | Subagents and native workflows | Restricted reader, no delegation/web, supplementary sandbox |
 | Moonshot Kimi Code | `kimi` | Agents and AgentSwarm | Print mode with enforced read/search agent |
 
 Install Antigravity CLI support with `dub install --provider agy`; its personal
 skill directory differs from Gemini's. See the [Antigravity adapter](adapters/agy/README.md).
 `google` continues to mean Gemini; doctor reports both harnesses separately.
-`gemini` is an executable name, not an accepted `--provider` key. Doctor reports
-Antigravity's version as `unknown` because DUB has no verified version probe for
-the installed CLI; this does not mean Antigravity is missing or broken.
+`gemini` is an executable name, not an accepted `--provider` key. Doctor now probes
+Antigravity with `agy --version` and checks required federation flags for enabled
+headless harnesses. `dub doctor --project .` also reports project skill presence.
 Gemini headless Plan Mode can transition to auto-approved execution, so it is not
 enabled as DUB's read-only federation worker.
+
+For a Grok-first setup, run `dub install --provider grok`, then enter
+`/do-it-up-bro <goal>` in Grok. A Grok-only configuration can set
+`[federation] synthesis_provider = "grok"`; this labels the synthesis handoff,
+not an automatic model call. [Optional plugin exports](docs/plugins.md) provide
+another installation path for Claude and Grok.
 
 ## Herdr transport
 
@@ -150,7 +158,7 @@ Or ask a host: `Do it up, Bro --federate: <goal>`.
 
 `--task-class` accepts `general` (default), `code`, `research`, `architecture`, or
 `review` and influences role assignment. `--mode campaign` prioritizes architecture
-and workflow-capable hosts. Unlike native `Do it up, Bro --campaign`, it does not
+using effective worker capabilities, not unavailable native workflows. Unlike native `Do it up, Bro --campaign`, it does not
 implement resumable milestones or automatic cross-CLI campaign recovery in v0.1.
 
 For example, a self-contained preview requires no repository file access:
@@ -164,15 +172,22 @@ vendor logs; avoid credentials and large file dumps. There is no goal-file/stdin
 input option in v0.1. [Federation operations](docs/federation.md).
 
 v0.1 federation is **advisory analysis**, with different work orders assigned by
-task class, host capabilities, and deterministic tie-breaking. It launches the
+task class, restricted-worker capabilities, and deterministic tie-breaking. It launches the
 official local CLIs using their saved login, limits concurrency and time, and
 keeps successful outputs when another provider fails. Each provider starts in
 its own working directory; source snapshots and automatic code integration are
 not implemented.
 
+Dry runs label compatibility `unchecked` and execute no probes. Live runs check
+required CLI help flags first and skip incompatible workers rather than weakening
+their restrictions. Help compatibility is not proof of runtime enforcement.
+
 Results live in `.dub/runs/<run-id>/`: plans, work orders, separate stdout/stderr,
 status records, SQLite telemetry, and `SYNTHESIS.md` for the chosen host. A successful
-process is not a verified solution. The host must adjudicate, test, and execute
+process is not a verified solution. Recognized Claude/Grok error envelopes also
+mark a worker failed even when its process exits zero. Validated optional usage
+and observed model metadata are recorded; missing or incomplete data stays unknown.
+The host must adjudicate, test, and execute
 any resulting implementation. Automatic synthesis and resume are future work.
 
 Use the returned `run_dir` when configuration changes the default artifact path.

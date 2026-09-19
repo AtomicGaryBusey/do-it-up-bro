@@ -1,6 +1,8 @@
+import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from dub.installer import install, skill_destination
 
@@ -30,7 +32,36 @@ class InstallTests(unittest.TestCase):
                 result = install(provider, project=project)
                 self.assertTrue(Path(result["destination"]).is_relative_to(project))
                 if provider == "agy":
-                    self.assertEqual(result["action"], "conflict")
+                    self.assertEqual(result["action"], "already-installed")
+
+    def test_relocated_provider_roots_and_project_precedence(self):
+        for provider, variable in (
+            ("kimi", "KIMI_CODE_HOME"),
+            ("grok", "GROK_HOME"),
+            ("claude", "CLAUDE_CONFIG_DIR"),
+        ):
+            with self.subTest(provider=provider), tempfile.TemporaryDirectory() as folder:
+                root = Path(folder).resolve()
+                with patch.dict(os.environ, {variable: str(root / "relocated")}):
+                    self.assertEqual(
+                        skill_destination(provider), root / "relocated/skills/do-it-up-bro"
+                    )
+                    self.assertTrue(
+                        skill_destination(provider, project=root / "project").is_relative_to(
+                            root / "project"
+                        )
+                    )
+
+    def test_shared_project_bundle_keeps_both_adapters_and_refuses_user_changes(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder).resolve()
+            first = install("agy", project=root)
+            target = Path(first["destination"])
+            self.assertEqual(install("codex", project=root)["action"], "already-installed")
+            for host in ("codex", "agy"):
+                self.assertTrue((target / f"references/{host}-host-adapter.md").is_file())
+            (target / "user-note.txt").write_text("keep")
+            self.assertEqual(install("codex", project=root)["action"], "conflict")
 
     def test_antigravity_personal_and_project_locations_are_distinct(self):
         with tempfile.TemporaryDirectory() as folder:
