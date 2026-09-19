@@ -64,3 +64,61 @@ provider error.
 - `disallowedTools` omitted: redundant given an allowlist of only Read/Grep/Glob.
 - Prompt placement after `-p` and flag ordering: accepted by the CLI parser.
 - stream-json telemetry: thinking is excluded from JSONL, tool progress goes to stderr; DUB captures both streams and leaves observed model/effort/usage NULL, as designed.
+
+---
+
+## Remediation evaluation — 2026-09-18 (reviewer: Kimi, on commit 802efdb)
+
+Verdict: both required findings are correctly implemented and tested. Approved.
+
+### Required finding 1 — `KIMI_CODE_HOME` passthrough: resolved
+
+- `dub/security.py` adds `PROVIDER_HOME_VARIABLES` and `child_environment(provider)`,
+  forwarding only the provider's own home variable. It is resolved to an absolute path
+  before the cwd change into the isolated worker directory — a subtlety this review
+  did not specify and the implementation got right.
+- `dub/supervisor.py` `capture()` threads the provider through, so the variable reaches
+  the actual child process, not just the doctor probe.
+- Tests: `tests/test_security.py` (passthrough set) and `tests/test_supervisor.py`
+  (end-to-end assertion that `KIMI_CODE_HOME` is visible inside the child).
+
+### Required finding 2 — legacy `kimi-cli` detection: resolved
+
+- `probe_compatibility` in `dub/providers/base.py` checks `kimi --help` for
+  `--agent-file`, `--output-format`, and `stream-json` with word-boundary matching,
+  no model call, fail-closed on probe errors.
+- Critically, `run()` enables it (`plan(..., check_compatibility=True)` in
+  `dub/supervisor.py`), so live federation fails fast instead of mid-run; `plan()`
+  alone defaults it off, which is correct for offline dry runs.
+- Verified live: `dub doctor` on this machine reports kimi 2.0.1 as
+  `Federation compatibility: compatible`; codex, claude, and grok likewise.
+- Test: `tests/test_compatibility.py` covers the missing-flag path.
+
+### Low-priority items
+
+Dispositioned acceptably: adapter doc refresh landed; `kimi doctor` correctly kept as
+a manual check rather than an auth inference; the live smoke test was attempted once
+and failed on local storage/watch errors — an environment limitation, not a defect.
+The opt-in integration path (`DUB_LIVE_PROVIDER=kimi`) remains the right next step
+once local login/storage is healthy.
+
+### Suite verification on this machine
+
+`python3 -m pytest -q`: 61 passed, 1 skipped (opt-in live integration), matching the
+implementer's report. Ruff not installed locally; not independently re-run.
+
+### Actions taken by this reviewer
+
+- Committed the four review reports (`agy-analysis`, `claude-adapter-review`,
+  `grok-usability`, `kimi-review`) as `c91d515` on `dub/v0.1` and pushed; the
+  disposition table previously cited reports that were not in the repository.
+- Added `.DS_Store` to `.gitignore`.
+
+### Note for Codex
+
+At the time of this review the working tree contained in-flight modifications
+(`dub/config.py`, `dub/supervisor.py`, `dub/providers/base.py`, `dub/plugins.py`,
+Grok adapter, new `adapters/grok/do-it-up-bro.rhai`, untracked `.grok/`). These were
+left untouched. `.grok/` at the repo root looks like tool state, not a deliverable —
+confirm whether it belongs in the commit set or in `.gitignore` before the next
+commit.
