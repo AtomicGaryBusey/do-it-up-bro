@@ -25,6 +25,9 @@ Herdr is a transport to an existing host, not a sixth model vendor.
   gated because documented plan mode can auto-approve execution and supplementary
   policy precedence requires further local verification. Antigravity is separately
   documented; it is not silently aliased to Gemini.
+- Antigravity installation follow-up: recognize `agy` explicitly in installer,
+  configuration, and doctor; use its CLI-specific personal skill directory and
+  shared `.agents/skills` project directory. Do not enable federation implicitly.
 - Local auth/entitlements stay unknown. Unit tests and diagnostics incur no model
   calls. Actual provider runs are explicit user actions, not installation tests.
 - The run ledger leaves observed model, effort, usage, and verification unknown

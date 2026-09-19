@@ -28,6 +28,11 @@ command = "AUTO_DETECT"
 # Native skill supported. v0.1 live federation is gated pending policy verification.
 # agy is a separate harness; do not substitute it for gemini here.
 
+[providers.agy]
+enabled = true
+command = "agy"
+# Native installation and detection supported; live federation is not enabled.
+
 [providers.grok]
 enabled = true
 command = "grok"

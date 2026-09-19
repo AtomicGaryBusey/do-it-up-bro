@@ -9,7 +9,7 @@ documentation-backed interfaces, not claims of successful paid execution.
 | OpenAI Codex | Subagents, role models/effort, worktrees | `codex exec`, read-only sandbox | 0.155.1 |
 | Anthropic Claude Code | Subagents, workflows, experimental teams | `claude -p`, read/search tools only; no teams | 2.1.277 |
 | Google Gemini CLI | Skills and subagents | Gated pending safe policy verification | Not found |
-| Google Antigravity CLI | Separate skills/subagents/worktrees surface | Not aliased to Gemini | Executable found; not exercised |
+| Google Antigravity CLI (`agy`) | Separate installer; skills/subagents/worktrees | Not enabled | Detected; version unknown (no verified probe) |
 | xAI Grok Build | Subagents and Rhai workflows | `grok -p`, read-only sandbox | 1.0.34 |
 | Moonshot Kimi Code | Skills, isolated agents, AgentSwarm | `kimi -p`, enforced read/search agent | 2.0.1 |
 | Herdr (transport) | Routes phrase to an existing host agent | Separate `dub herdr` command | 0.9.1 |
@@ -19,6 +19,7 @@ Detailed evidence:
 - [Codex adapter](../../adapters/codex/README.md)
 - [Claude adapter](../../adapters/claude/README.md)
 - [Google adapter](../../adapters/google/README.md)
+- [Antigravity CLI adapter](../../adapters/agy/README.md)
 - [Grok adapter](../../adapters/grok/README.md)
 - [Kimi adapter](../../adapters/kimi/README.md)
 - [Portable standard and OpenAI/Anthropic research](codex-claude.md)

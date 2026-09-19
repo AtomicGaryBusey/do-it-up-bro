@@ -17,7 +17,13 @@ def skill_destination(
     base = project if project is not None else (home or Path.home())
     if provider == "kimi" and project is None and home is None and os.environ.get("KIMI_CODE_HOME"):
         return Path(os.environ["KIMI_CODE_HOME"]).expanduser() / "skills/do-it-up-bro"
-    return base / PROVIDERS[provider].skill_directory / "do-it-up-bro"
+    definition = PROVIDERS[provider]
+    directory = (
+        definition.project_skill_directory
+        if project is not None and definition.project_skill_directory
+        else definition.skill_directory
+    )
+    return base / directory / "do-it-up-bro"
 
 
 def install(

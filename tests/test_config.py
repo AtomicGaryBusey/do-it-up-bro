@@ -15,6 +15,7 @@ class ConfigTests(unittest.TestCase):
     def test_example_defaults_and_override(self):
         config = load_config("DUB.toml.example")
         self.assertEqual(config.providers["google"].command, "gemini")
+        self.assertEqual(config.providers["agy"].command, "agy")
         self.assertIsNone(config.providers["codex"].model)
         config = self.parse("[dub]\nmax_parallel_providers=2\n[providers.kimi]\nenabled=false\n")
         self.assertFalse(config.providers["kimi"].enabled)

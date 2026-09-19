@@ -26,9 +26,26 @@ class InstallTests(unittest.TestCase):
     def test_all_provider_project_paths(self):
         with tempfile.TemporaryDirectory() as folder:
             project = Path(folder).resolve()
-            for provider in ("codex", "claude", "google", "grok", "kimi"):
+            for provider in ("codex", "claude", "google", "grok", "kimi", "agy"):
                 result = install(provider, project=project)
                 self.assertTrue(Path(result["destination"]).is_relative_to(project))
+                if provider == "agy":
+                    self.assertEqual(result["action"], "conflict")
+
+    def test_antigravity_personal_and_project_locations_are_distinct(self):
+        with tempfile.TemporaryDirectory() as folder:
+            home = Path(folder).resolve()
+            personal = install("agy", home=home)
+            self.assertEqual(
+                Path(personal["destination"]), home / ".gemini/antigravity-cli/skills/do-it-up-bro"
+            )
+            adapter = Path(personal["destination"]) / "references/host-adapter.md"
+            self.assertIn("# Google Antigravity CLI adapter", adapter.read_text())
+            project = install("agy", project=home / "project")
+            self.assertEqual(
+                Path(project["destination"]), home / "project/.agents/skills/do-it-up-bro"
+            )
+            self.assertFalse((home / ".gemini/skills").exists())
 
     def test_symlink_target_preserved_and_ancestor_refused(self):
         with tempfile.TemporaryDirectory() as folder:

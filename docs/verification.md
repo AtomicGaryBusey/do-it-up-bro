@@ -5,7 +5,7 @@ live Herdr target submission was used for testing.
 
 ## Checks
 
-- Automated suite: **30 passed**, one explicitly opt-in live-provider test skipped.
+- Automated suite: **32 passed**, one explicitly opt-in live-provider test skipped.
   Uses real fake executable subprocesses for stdout/stderr, failure, timeout,
   descendant cleanup, output limits, and cancellation. Also covers dry-run,
   configuration, capability routing, ledger unknowns/redaction, installer conflicts,
@@ -19,6 +19,9 @@ live Herdr target submission was used for testing.
 - Local `dub doctor`: Codex 0.155.1, Claude 2.1.277, Grok 1.0.34, Kimi 2.0.1.
   Gemini is absent; Antigravity is a separate installed executable. Auth stays
   unknown. Herdr version/help confirms 0.9.1 and the prompt interface.
+- Antigravity follow-up verifies separate personal/project skill paths, shared
+  project-path conflicts, and executable detection without inventing a version
+  command. `dub install --provider agy` is now accepted and packaged separately.
 - Local installer/federation/Herdr dry runs complete without model calls.
 
 ## Review and repairs

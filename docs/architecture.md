@@ -11,7 +11,7 @@ The Python distribution contains no runtime dependencies:
 | Component | Responsibility |
 | --- | --- |
 | `config.py` | Strict TOML loading, relative-path resolution, inherited model defaults |
-| `providers/base.py` | Five explicit executable/skill/command contracts |
+| `providers/base.py` | Five vendors; distinct Gemini and Antigravity harness contracts |
 | `assets.py`, `installer.py` | Checkout/wheel assets, staged copy, conflicts and backups |
 | `doctor.py` | Version-only diagnostics; auth remains unknown |
 | `router.py` | Task-class role ordering, capability preferences, deterministic ties |

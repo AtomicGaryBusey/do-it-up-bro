@@ -9,6 +9,7 @@ COMMANDS = {
     "codex": "codex",
     "claude": "claude",
     "google": "gemini",
+    "agy": "agy",
     "grok": "grok",
     "kimi": "kimi",
 }

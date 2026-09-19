@@ -18,6 +18,8 @@ class Provider:
     headless: bool = True
     capabilities: tuple[str, ...] = ("analysis", "model-selection")
     reason: str = ""
+    project_skill_directory: str | None = None
+    version_args: tuple[str, ...] | None = ("--version",)
 
 
 PROVIDERS = {
@@ -41,11 +43,22 @@ PROVIDERS = {
         capabilities=("analysis", "model-selection", "subagents"),
         reason="Native supported; federation gated: headless plan mode auto-approves execution, and admin-policy overrides require local verification",
     ),
+    "agy": Provider(
+        "agy",
+        "agy",
+        ".gemini/antigravity-cli/skills",
+        headless=False,
+        capabilities=("analysis", "model-selection", "subagents", "effort"),
+        reason="Antigravity native supported; federation not enabled: read-only execution contract unverified",
+        project_skill_directory=".agents/skills",
+        version_args=None,
+    ),
     "grok": Provider(
         "grok",
         "grok",
         ".grok/skills",
         capabilities=("analysis", "model-selection", "subagents", "effort", "sandbox", "workflows"),
+        version_args=("version",),
     ),
     "kimi": Provider(
         "kimi",
@@ -129,11 +142,10 @@ def detect(config: Config, *, versions: bool = True) -> list[dict]:
         command = settings.command or provider.executable
         executable = shutil.which(command)
         version = "unknown"
-        if executable and versions:
+        if executable and versions and provider.version_args is not None:
             try:
-                flags = ["version"] if key == "grok" else ["--version"]
                 result = subprocess.run(
-                    [executable, *flags],
+                    [executable, *provider.version_args],
                     stdin=subprocess.DEVNULL,
                     capture_output=True,
                     text=True,

@@ -21,6 +21,7 @@ authenticate accounts, enable host experiments, or modify host configuration.
 | Codex | `~/.agents/skills` | `.agents/skills` |
 | Claude | `~/.claude/skills` | `.claude/skills` |
 | Gemini | `~/.gemini/skills` | `.gemini/skills` |
+| Antigravity (`agy`) | `~/.gemini/antigravity-cli/skills` | `.agents/skills` |
 | Grok | `~/.grok/skills` | `.grok/skills` |
 | Kimi | `~/.kimi-code/skills` or `$KIMI_CODE_HOME/skills` | `.kimi-code/skills` |
 
@@ -33,6 +34,12 @@ path; restore it to the original destination after moving the replacement aside.
 Symlink ancestors are refused; a symlink destination itself can be backed up as
 an entry without following it. Copies are supported; symlink installation is not
 implemented in v0.1. Keep install operations sequential for a given destination.
+
+For Antigravity CLI use `dub install --provider agy`, not `--provider google`.
+The latter installs for Gemini. Antigravity and Codex share the project skill
+directory, so installing both there produces a conflict rather than replacing
+the first adapter. Personal installs use separate directories. Doctor recognizes
+`agy` but leaves its version unknown because installed help exposes no version probe.
 
 Configuration defaults to `./DUB.toml`; use `dub --config /path/DUB.toml ...` to
 select another. Relative run and executable paths resolve beside that config.

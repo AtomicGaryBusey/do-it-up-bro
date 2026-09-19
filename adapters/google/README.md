@@ -50,6 +50,10 @@ override. [Policy engine](https://geminicli.com/docs/reference/policy-engine/)
 
 ## Antigravity native alternative
 
+DUB now supports explicit detection and installation with
+`dub install --provider agy`. It has a separate Antigravity host adapter;
+`--provider google` installs for Gemini CLI only.
+
 Use `agy` directly, with the canonical skill at workspace `.agents/skills/` or
 `~/.gemini/antigravity-cli/skills/` (not Gemini CLI's directory).
 [Skills](https://antigravity.google/docs/skills)

@@ -58,12 +58,14 @@ limitations, and local versions.
 | OpenAI Codex | Skills, subagents, model/effort roles | Read-only `codex exec` |
 | Anthropic Claude Code | Subagents, workflows; experimental interactive teams | Print mode with read/search tools |
 | Google Gemini CLI | Skills and subagents | Gated pending safe policy verification |
+| Google Antigravity CLI (`agy`) | Skills and native subagents | Not enabled |
 | xAI Grok Build | Subagents and native workflows | Print mode with read-only sandbox |
 | Moonshot Kimi Code | Agents and AgentSwarm | Print mode with enforced read/search agent |
 | Herdr | Target an existing host's agent | Separate prompt transport |
 
-Google also has Antigravity CLI (`agy`). Its native mapping is documented in the
-[Google adapter](adapters/google/README.md); DUB does not substitute it for Gemini.
+Install Antigravity CLI support with `dub install --provider agy`; its personal
+skill directory differs from Gemini's. See the [Antigravity adapter](adapters/agy/README.md).
+`google` continues to mean Gemini; doctor reports both harnesses separately.
 Gemini headless Plan Mode can transition to auto-approved execution, so it is not
 enabled as DUB's read-only federation worker.
 
