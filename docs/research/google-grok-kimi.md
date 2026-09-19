@@ -23,7 +23,8 @@ required in DUB defaults.
 | Kimi headless safety | Print mode defaults to automatic tool approval | Bundle an enforced read/search-only agent |
 
 Research distinction: a feature in a vendor's current docs is not necessarily in
-an older installed CLI. Doctor probes versions/help without issuing prompts;
+an older installed CLI. Doctor probes versions without issuing prompts; help was
+inspected separately during research. Unsupported flags fail at CLI parsing;
 missing required flags must prevent launching that provider. CLI flags do not
 neutralize administrator policy, user hooks, or every external integration.
 
