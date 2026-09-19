@@ -15,6 +15,9 @@ dub install --provider google --project /absolute/path/to/project --dry-run
 Default `--provider all` selects detected executables. Explicit selection allows
 installation even when the CLI is not installed. DUB does not install vendor CLIs,
 authenticate accounts, enable host experiments, or modify host configuration.
+If nothing is detected, the default install prints `[]` and exits 0 without
+installing anything. Choose an explicit key, such as `--provider codex`, to stage
+its skill before installing the host CLI.
 
 | Provider | Personal skill base | Project skill base |
 | --- | --- | --- |
@@ -34,6 +37,7 @@ path; restore it to the original destination after moving the replacement aside.
 Symlink ancestors are refused; a symlink destination itself can be backed up as
 an entry without following it. Copies are supported; symlink installation is not
 implemented in v0.1. Keep install operations sequential for a given destination.
+Conflicts also exit 1 in `--dry-run`; setup scripts using `set -e` must handle this.
 
 For Antigravity CLI use `dub install --provider agy`, not `--provider google`.
 The latter installs for Gemini. Antigravity and Codex share the project skill
@@ -49,3 +53,6 @@ verified executable name. Unknown keys and invalid limits fail clearly.
 Natural-language trigger discovery varies by host. Explicitly select the installed
 skill if needed. Install DUB for the underlying CLI when using Herdr; there is no
 separate Herdr skill installation or automatic change to Herdr's configuration.
+Launch the host in the intended project and see the [README invocation table](../README.md#quick-start)
+for prompt-box syntax. Save ongoing work before restarting a session to refresh
+skill discovery.

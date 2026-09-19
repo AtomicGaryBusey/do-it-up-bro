@@ -1,7 +1,8 @@
 # v0.1 verification report
 
-Checked locally on 2026-09-18; Python 3.13 on macOS. No paid provider prompt or
-live Herdr target submission was used for testing.
+Checked locally on 2026-09-18; Python 3.13 on macOS. Automated checks use no paid
+provider prompts or live Herdr target submissions. A separate user-run dogfood
+session is documented below.
 
 ## Checks
 
@@ -46,13 +47,35 @@ preserved only in its transport, not passed to federation children.
 
 ## Remaining boundaries
 
-No live authentication, entitlement, native swarm/team execution, telemetry parser,
-or paid federation result was verified. Google safe unattended policy remains
+No cross-provider live authentication, entitlement, native swarm/team execution,
+telemetry parser, or paid federation result was verified. Google safe unattended policy remains
 gated; no permissive fallback exists. Host synthesis is required. Best-effort
 redaction cannot promise arbitrary secret removal or control vendor-owned logs.
 Windows federation, detached-process containment, automatic source snapshots,
 patch integration, live campaign resume, and learned routing are outside v0.1.
 
-The highest-value next step is a bounded, explicitly selected live dogfood run
-through the installed host/Herdr path, inspecting actual results and permissions
-before widening provider coverage.
+## User-run Herdr dogfood and README audit
+
+The user supplied the result of a live `dub herdr` README-review request to
+Antigravity. It returned exit 0 and a Herdr `done` state. A subsequent transcript
+showed native review subagents still running, including one blocked on an install
+command outside the read-only assignment. A later supplied report contained the
+completed audit. This is evidence of prompt delivery and native delegation, not
+a guarantee that transport completion means all child work has finished. DUB
+did not approve that install request or submit a replacement prompt.
+
+The audit's command/config findings were independently checked against source
+and parser behavior without model calls. Documentation now explains the exact
+provider keys, explicit skill invocation, host startup, install no-op/conflict
+states, project collisions, root-only `--config`, Herdr context/target/deadline,
+campaign differences, and the host synthesis handoff.
+
+Three recommendations were qualified: empty working directories do not prevent
+access to other readable paths; an unknown Antigravity version reflects DUB's
+unverified probe, not a universal host limitation; Windows/WSL2 runner support was
+not established. Small sanitized excerpts replace the suggested general-purpose
+shell file-dump example. First-party skill pages linked in the README were opened
+again to confirm each invocation form and Gemini activation consent.
+
+The next live step is to inspect the synthesized review and its evidence before
+widening provider coverage. Cross-provider paid integration remains opt-in.

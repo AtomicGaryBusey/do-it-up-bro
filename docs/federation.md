@@ -5,6 +5,11 @@ does not issue prompts, probe versions, or write artifacts. `--task-class` suppo
 general, code, research, architecture, and review. `--mode campaign` prioritizes
 workflow-capable hosts and records campaign mode; it does not add automatic resume.
 
+Select another configuration with `dub --config /path/DUB.toml federate ...`;
+`--config` must precede the subcommand. The default is `./DUB.toml` if present.
+Use the returned `run_dir` for artifact inspection when its configured location
+differs from `.dub/runs`.
+
 Live `dub federate` sends independent analysis work orders to available, enabled
 providers. Normal saved CLI authentication is reused. No API-key environment
 variables are forwarded, no credentials are read by DUB, and failed authentication
@@ -19,6 +24,13 @@ denial, and Kimi loads an enforced read/search custom agent. Google is gated.
 Home state, hooks, vendor logs, configured integrations, administrator policy,
 and readable paths still belong to the trusted host environment. Never assume
 a prompt instruction prevents a malicious tool or connector from changing state.
+
+No repository snapshot is copied to that working directory. A goal such as
+`Review auth.py` therefore supplies no file contents and does not establish the
+intended repository path. Prefer a native host or Herdr for repository-aware work;
+for self-contained federation, include small sanitized excerpts and relevant
+interfaces in the goal. Absolute paths may still be readable if the host permits
+them; an empty cwd is not proof that a worker cannot access the repository.
 
 Argument arrays avoid shell interpolation. The goal remains visible to the local
 process table and vendor session handling. DUB's persisted artifacts redact known
@@ -61,6 +73,7 @@ Set `federation.synthesis_provider` to label a chosen host in the handoff. Open 
 host and ask it to read `SYNTHESIS.md`, assess the candidate evidence, perform
 objective verification, and implement only authorized changes. No automatic
 cross-provider voting or model-produced command execution occurs.
+The [README](../README.md#federation) includes a copyable synthesis prompt.
 
 For opt-in live testing, see `tests/integration/test_live.py`. The ordinary tests
 never consume model quota. Google safe headless policy verification is the main
