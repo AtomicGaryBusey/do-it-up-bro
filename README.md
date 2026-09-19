@@ -1,5 +1,16 @@
 # Do It Up, Bro
 
+```text
+     >>>  ONE PHRASE.  NATIVE SWARM.  NO ROLEPLAY.  EVIDENCE OR GTFO.  <<<
+
+  (o_o)      (O_O)      (-_-)     (O_o)     (>_<)     (X_X)
+   /|\        /|\        /|\       /|\       /|\       /|\
+   / \        / \        / \       / \       / \       / \
+  SCOUT     TOURNEY     JUDGE    EXECUTE    ATTACK    REPAIR
+```
+
+[See Grok's full ASCII banner](docs/banner.txt).
+
 One phrase, useful native orchestration. **DUB** is a portable escalation protocol
 for AI coding agents: independent subagents, competing approaches when justified,
 evidence-based judgment, execution, adversarial review, repair, and convergence.
@@ -65,12 +76,17 @@ If phrase matching does not activate DUB, use the host's explicit invocation:
 
 | Host | In the agent prompt box |
 | --- | --- |
-| [Codex](https://learn.chatgpt.com/docs/build-skills) | `$do-it-up-bro <goal>`; `/skills` also opens selection |
+| [Codex](https://learn.chatgpt.com/docs/build-skills) | `$do-it-up-bro <goal>`; `$dub <goal>` with the optional short alias. `/skills` opens selection; `/dub` is not a Codex command. |
 | [Claude Code](https://code.claude.com/docs/en/skills) | `/do-it-up-bro <goal>` |
 | [Antigravity CLI](https://antigravity.google/docs/skills) | `/do-it-up-bro <goal>` |
 | [Grok Build](https://docs.x.ai/build/features/skills-plugins-marketplaces) | `/do-it-up-bro <goal>` |
 | [Kimi Code](https://www.kimi.com/code/docs/en/kimi-code-cli/customization/skills.html) | `/skill:do-it-up-bro <goal>` |
 | [Gemini CLI](https://geminicli.com/docs/cli/using-agent-skills/) | `/skills reload`, then `/skills list`; ask it to use `do-it-up-bro` and respond to its activation-consent prompt |
+
+The optional `$dub` alias is a separate Codex skill that delegates to the installed
+`do-it-up-bro` bundle. After `dub install --provider codex`, install the alias with
+`install -d ~/.agents/skills/dub && install -m 644 skills/dub/SKILL.md ~/.agents/skills/dub/SKILL.md`.
+Start a fresh Codex session if it does not appear in `/skills` immediately.
 
 ## Providers
 
