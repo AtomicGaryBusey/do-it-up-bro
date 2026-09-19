@@ -1,0 +1,43 @@
+[dub]
+default_mode = "native"
+run_dir = ".dub/runs"
+max_parallel_providers = 3
+provider_timeout_seconds = 1800
+
+[install]
+strategy = "copy"
+
+[federation]
+enabled = true
+# Writes a handoff addressed to this host; does not automatically invoke a judge.
+synthesis_provider = "codex"
+
+[providers.codex]
+enabled = true
+command = "codex"
+# model = "your-installed-model"
+# effort = "high"
+
+[providers.claude]
+enabled = true
+command = "claude"
+
+[providers.google]
+enabled = true
+command = "AUTO_DETECT"
+# Native skill supported. v0.1 live federation is gated pending policy verification.
+# agy is a separate harness; do not substitute it for gemini here.
+
+[providers.agy]
+enabled = true
+command = "agy"
+# Native installation and detection supported; live federation is not enabled.
+
+[providers.grok]
+enabled = true
+command = "grok"
+
+[providers.kimi]
+enabled = true
+command = "kimi"
+# Federation uses the bundled Read/Grep/Glob-only agent.

@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "do-it-up-bro"
+version = "0.1.0"
+description = "A portable, vendor-aware orchestration protocol for coding agents"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = []
+
+[project.scripts]
+dub = "dub.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.9", "build>=1"]
+
+[tool.setuptools]
+packages = ["dub", "dub.providers"]
+
+[tool.setuptools.data-files]
+"share/dub" = ["DUB.toml.example"]
+"share/dub/skills/do-it-up-bro" = ["skills/do-it-up-bro/SKILL.md"]
+"share/dub/skills/do-it-up-bro/references" = ["skills/do-it-up-bro/references/*.md"]
+"share/dub/adapters/codex" = ["adapters/codex/*.md"]
+"share/dub/adapters/claude" = ["adapters/claude/*.md"]
+"share/dub/adapters/google" = ["adapters/google/*.md"]
+"share/dub/adapters/agy" = ["adapters/agy/*.md"]
+"share/dub/adapters/grok" = ["adapters/grok/*.md"]
+"share/dub/adapters/kimi" = ["adapters/kimi/*.md"]
+"share/dub/adapters/herdr" = ["adapters/herdr/*.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: opt-in live provider calls (may use paid quota)"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "B"]
