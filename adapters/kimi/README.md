@@ -38,9 +38,23 @@ Federation must use the bundled `readonly-agent.md` through an absolute
 `--agent-file` path. It permits only Read/Grep/Glob and excludes shell, writes,
 MCP, and delegation. Current headless shape is
 `kimi --agent-file PATH -p PROMPT --output-format stream-json`.
-Bare `-p` uses auto permissions and cannot combine with `--plan`; it is unsafe to
+Bare `-p` uses auto permissions and cannot combine with `--plan`, `--auto`, or
+`--yolo`; it is unsafe to
 treat a read-only prompt as enforcement. JSONL exposes messages/tool calls, not a
 guaranteed observed model/effort/usage schema; leave unavailable ledger fields null.
 Cached OAuth from `kimi login` is reused. Do not export session debug archives to
 collect telemetry: they can contain credentials. See the command and agent docs
 above. Restricted federation deliberately has less capability than native DUB.
+
+`--agent-file` accepts one file and cannot combine with `--agent`, `--session`,
+or `--continue`. DUB's model override is a configured model alias, not an assumed
+raw vendor model ID. `--skills-dir` replaces automatic discovery rather than
+adding a directory; DUB does not use it. The public command reference above is
+the documentation source; installed help also points to Moonshot's GitHub Pages.
+
+Compatibility requires local help advertising `--agent-file` and `stream-json`;
+an executable named `kimi` alone does not establish successor-CLI compatibility.
+Forward `KIMI_CODE_HOME` for workers so relocated cached login and configuration
+match the skill install. `kimi doctor` is an optional local configuration check,
+not authentication proof. End-to-end subscription execution needs a separately
+opted-in live smoke test; do not automatically consume quota during diagnostics.

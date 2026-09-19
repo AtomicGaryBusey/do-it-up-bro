@@ -25,6 +25,21 @@ class CliTests(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()) as stdout:
             self.assertEqual(main(["herdr", "--target", "reviewer", "--dry-run", "test"]), 0)
         self.assertIn("Do it up, Bro", stdout.getvalue())
+        with contextlib.redirect_stdout(io.StringIO()) as stdout:
+            self.assertEqual(
+                main(
+                    [
+                        "plugin",
+                        "--provider",
+                        "grok",
+                        "--output",
+                        "/private/tmp/dub-plugin-cli-preview",
+                        "--dry-run",
+                    ]
+                ),
+                0,
+            )
+        self.assertIn('"dry_run": true', stdout.getvalue())
         with contextlib.redirect_stderr(io.StringIO()):
             self.assertEqual(main(["--config", "/nonexistent/dub.toml", "doctor"]), 2)
 

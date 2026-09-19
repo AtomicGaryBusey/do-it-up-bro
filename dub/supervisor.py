@@ -15,9 +15,10 @@ from pathlib import Path
 
 from .adjudicator import prepare
 from .ledger import Ledger
-from .providers.base import PROVIDERS, build_command
+from .providers.base import PROVIDERS, build_command, probe_compatibility
 from .router import route, work_order
 from .security import child_environment, redact
+from .telemetry import parse_result
 
 OUTPUT_LIMIT = 1_048_576  # bytes per stream; fail closed when exceeded
 
@@ -26,7 +27,7 @@ def now():
     return datetime.now(timezone.utc).isoformat()
 
 
-def plan(config, goal, mode="federate", task_class="general"):
+def plan(config, goal, mode="federate", task_class="general", *, check_compatibility=False):
     if not goal.strip():
         raise ValueError("Goal must not be empty")
     available, skipped = [], []
@@ -42,6 +43,10 @@ def plan(config, goal, mode="federate", task_class="general"):
             reason = provider.reason if provider else "unknown provider"
         elif not shutil.which(command):
             reason = "executable not found"
+        elif check_compatibility:
+            probe = probe_compatibility(key, os.path.abspath(shutil.which(command)))
+            if not probe["compatible"]:
+                reason = probe["reason"]
         if reason:
             skipped.append({"provider": key, "reason": reason})
         else:
@@ -51,7 +56,9 @@ def plan(config, goal, mode="federate", task_class="general"):
                     "command": os.path.abspath(shutil.which(command)),
                     "model_requested": settings.model,
                     "effort_requested": settings.effort,
-                    "capabilities": list(provider.capabilities),
+                    "capabilities": list(provider.federation_capabilities),
+                    "native_capabilities": list(provider.capabilities),
+                    "compatibility": "compatible" if check_compatibility else "unchecked",
                 }
             )
     assignments = route(available, goal, mode, task_class)
@@ -89,14 +96,16 @@ def _kill(proc):
         pass
 
 
-def capture(argv, cwd, timeout, cancellation=None, *, environment=None):
+def capture(
+    argv, cwd, timeout, cancellation=None, *, environment=None, provider=None, grace_seconds=0
+):
     """Drain both pipes concurrently with bounded memory, including hung descendants."""
     if os.name != "posix":
         raise RuntimeError("Federation currently requires POSIX process-group isolation")
     proc = subprocess.Popen(
         argv,
         cwd=cwd,
-        env=child_environment() if environment is None else environment,
+        env=child_environment(provider) if environment is None else environment,
         stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -105,17 +114,27 @@ def capture(argv, cwd, timeout, cancellation=None, *, environment=None):
     buffers = {"stdout": bytearray(), "stderr": bytearray()}
     status, reason = "completed", None
     deadline = time.monotonic() + timeout
+    stopping = False
     try:
         with selectors.DefaultSelector() as selector:
             for name, pipe in (("stdout", proc.stdout), ("stderr", proc.stderr)):
                 os.set_blocking(pipe.fileno(), False)
                 selector.register(pipe, selectors.EVENT_READ, name)
             while selector.get_map() or proc.poll() is None:
-                if cancellation is not None and cancellation.is_set():
+                if not stopping and cancellation is not None and cancellation.is_set():
                     status, reason = "interrupted", "run interrupted"
-                    break
-                if time.monotonic() >= deadline:
+                if not stopping and status == "completed" and time.monotonic() >= deadline:
                     status, reason = "timeout", "provider timeout exceeded"
+                if not stopping and status in {"timeout", "interrupted"}:
+                    if not grace_seconds:
+                        break
+                    stopping = True
+                    deadline = time.monotonic() + min(1.0, max(0, grace_seconds))
+                    try:
+                        os.killpg(proc.pid, signal.SIGINT)
+                    except ProcessLookupError:
+                        pass
+                if stopping and time.monotonic() >= deadline:
                     break
                 for key, _ in selector.select(min(0.1, max(0, deadline - time.monotonic()))):
                     chunk = os.read(key.fileobj.fileno(), 65536)
@@ -129,7 +148,7 @@ def capture(argv, cwd, timeout, cancellation=None, *, environment=None):
                         break
                     else:
                         buffers[key.data].extend(chunk)
-                if status != "completed":
+                if status == "output_limit":
                     break
     finally:
         # Also clean up background grandchildren after their root exits.
@@ -141,7 +160,16 @@ def capture(argv, cwd, timeout, cancellation=None, *, environment=None):
         status, reason = "failed", f"provider exited with code {proc.returncode}"
     if status == "output_limit":
         buffers = {"stdout": bytearray(), "stderr": bytearray()}
+    metadata = (
+        parse_result(provider, buffers["stdout"].decode("utf-8", errors="replace"))
+        if provider
+        else {}
+    )
+    envelope_failure = metadata.pop("failure_reason", None)
+    if status == "completed" and envelope_failure:
+        status, reason = "failed", envelope_failure
     return {
+        **metadata,
         "status": status,
         "failure_reason": reason,
         "return_code": proc.returncode,
@@ -151,11 +179,17 @@ def capture(argv, cwd, timeout, cancellation=None, *, environment=None):
 
 def run(config, goal, mode="federate", task_class="general", cancellation=None):
     cancellation = cancellation if cancellation is not None else threading.Event()
-    execution_plan = plan(config, goal, mode, task_class)
     if not config.enabled:
         raise ValueError("Federation is disabled in configuration")
+    execution_plan = plan(config, goal, mode, task_class, check_compatibility=True)
     if not execution_plan["assignments"]:
-        raise ValueError("No enabled providers with available safe headless executables")
+        details = "; ".join(
+            f"{item['provider']}: {item['reason']}" for item in execution_plan["skipped"]
+        )
+        raise ValueError(
+            "No enabled providers with available safe headless executables"
+            + (f" ({details})" if details else "")
+        )
     run_id, started = uuid.uuid4().hex, now()
     run_dir = Path(config.run_dir).resolve() / run_id
     run_dir.mkdir(parents=True, mode=0o700)
@@ -195,6 +229,9 @@ def run(config, goal, mode="federate", task_class="general", cancellation=None):
                 prompt,
                 model=assignment["model_requested"],
                 effort=assignment["effort_requested"],
+                **(
+                    {"prompt_file": str(directory / "work-order.txt")} if provider == "grok" else {}
+                ),
             )
             if cancellation.is_set():
                 captured = {
@@ -205,7 +242,14 @@ def run(config, goal, mode="federate", task_class="general", cancellation=None):
                     "stderr": "",
                 }
             else:
-                captured = capture(argv, workspace, config.provider_timeout_seconds, cancellation)
+                captured = capture(
+                    argv,
+                    workspace,
+                    config.provider_timeout_seconds,
+                    cancellation,
+                    provider=provider,
+                    grace_seconds=1 if provider == "claude" else 0,
+                )
         except Exception as exc:
             captured = {
                 "status": "failed",

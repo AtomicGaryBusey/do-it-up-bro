@@ -56,8 +56,8 @@ def route(
                 "task_class": task_class,
                 "mode": mode,
                 "instruction": instruction,
-                "routing_note": "Task priority and capability/configuration preference; "
-                "no model quality ranking or guarantee that restricted roots can use native orchestration.",
+                "routing_note": "Task priority and effective federation capability/configuration preference; "
+                "no model quality ranking or unavailable native orchestration bonus.",
             }
         )
     return assignments
