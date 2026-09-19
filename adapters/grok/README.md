@@ -24,19 +24,22 @@ supported runtime controls. The installed guide documents role/persona defaults
 for model, `reasoning_effort`, and isolation. Preserve inherited settings when
 capabilities are unavailable. [Settings](https://docs.x.ai/build/settings/reference)
 
-For DUB campaigns, ask the host to author and smoke-check a native workflow with
-independent phases and skeptical verification. Saved workflows reside in
-`.grok/workflows/` or `~/.grok/workflows/` and expose slash commands. Officially
-described run budgets are 128 agents, up to 1,024 for large jobs; these are budgets,
-not a requirement to spawn that many concurrently. Workflows persist progress.
-The installed `/create-workflow` skill is the first-party Rhai API reference:
-`agent()`, `parallel()`, `phase()`, `complete()`, `capability_mode`,
-`isolation_worktree`, and output schemas. Load it before authoring. Validate
-representative paths using the workflow tool's `validate_only: true` before
-execution. This is not a shell flag and does not test live tools or every branch.
-No prevalidated DUB script ships: no standalone offline validator was found.
-Same-process pause/resume is supported; a process exit is not resumable, and
-external effects are not exactly-once. Inspect state before repeating work.
+For DUB campaigns, use the shipped `dub-campaign` workflow (project
+`.grok/workflows/dub-campaign.rhai`, also packaged as `adapters/grok/do-it-up-bro.rhai`).
+It scouts, optionally fans an independent alternative when `args.tournament` is
+true, then adversarially verifies. Workers are `capability_mode: "read-only"`.
+It does not merge or apply patches. Invoke `/dub-campaign` or
+`/workflow dub-campaign {"goal":"..."}`. Saved workflows reside in
+`.grok/workflows/` or `~/.grok/workflows/`. Officially described run budgets are
+128 agents, up to 1,024 for large jobs; these are budgets, not a requirement to
+spawn that many concurrently. Workflows persist progress.
+The installed `/create-workflow` skill is the first-party Rhai API reference.
+Two canned-host `validate_only` paths passed on Grok 1.0.34 (goal-only, and
+`tournament: true`). That does not exercise live tools or every branch.
+`dub install` does not overwrite `~/.grok/workflows/`; copy or plugin-export
+deliberately. Same-process pause/resume is supported; a process exit is not
+resumable, and external effects are not exactly-once. Inspect state before
+repeating work.
 [Workflows](https://x.ai/news/workflows)
 The reusable file format is **Rhai (`.rhai`)**, authored through
 `/create-workflow`; `/workflow <name>` accepts optional JSON arguments.
@@ -75,8 +78,12 @@ not forwarded by federation; use a cached login. A Grok-only setup can select
 
 Federation selects the bundled reader, explicitly allowlists
 `read_file,grep,list_dir`, disables subagents and web tools, and bounds turns.
-Tool restriction is the principal execution boundary. Do not claim sandbox
-enforcement unless the actual host supports it; never substitute blanket approval.
+Tool restriction is the principal execution boundary. `--sandbox read-only` is
+on by default and **fail-closes** on Grok 1.0.34 if the profile cannot apply
+(observed: Docker Desktop's `/var/run/docker.sock` symlink). Set
+`[providers.grok] sandbox = false` to pass `--sandbox off` (omitting the flag is
+not enough: Grok config can still select read-only). Never substitute blanket
+approval.
 
 Grok can discover foreign adapters in `.agents/skills` and `.claude/skills`.
 Inspect the selected skill source with `grok inspect --json`; do not publish the

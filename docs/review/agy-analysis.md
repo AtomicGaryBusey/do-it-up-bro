@@ -194,3 +194,36 @@ if provider_key == "agy":
    Run `dub install --provider agy --dry-run` to verify skill file mapping.
 4. **Lint & Formatting:**
    Run `ruff check dub tests` and `ruff format --check dub tests`.
+
+---
+
+## 5. Post-Remediation Evaluation & Codex Handoff
+
+**Evaluator:** Antigravity Pairing Agent  
+**Date:** 2026-09-18  
+**Scope:** Evaluation of Codex remediations across commits `802efdb`, `c91d515`, and active working-tree updates.
+
+### 5.1 Evaluation of Remediated Findings
+
+| Area | Review Request | Codex Implementation | Antigravity Evaluation & Verdict |
+| :--- | :--- | :--- | :--- |
+| **Version Detection** | Enable `agy --version` probe in `dub doctor` | Defaulted `version_args=("--version",)` in `Provider` dataclass ([`dub/providers/base.py`](../dub/providers/base.py#L23)) | **Accepted & Verified.** `dub doctor` now correctly reports `agy True 1.2.7 unknown True True`. Tests pass in `tests/test_detection.py` and `tests/test_doctor.py`. |
+| **Codex / Agy Project Collision** | Resolve conflict when both tools install to `<project>/.agents/skills` | Created shared project adapter bundle ([`adapters/shared/README.md`](../adapters/shared/README.md)) and dual-host install logic ([`dub/installer.py`](../dub/installer.py#L41-L50)) | **Accepted & Verified.** Preserves both `codex-host-adapter.md` and `agy-host-adapter.md` in `references/` without file overwrite collisions. Tested in `tests/test_install.py`. |
+| **Headless Federation Gate** | Evaluate `--mode plan --sandbox` to potentially un-gate `agy` federation | Retained `headless=False` with gating reason recorded in [`docs/review/disposition.md`](disposition.md#L30) | **Accepted.** Antigravity fully endorses retaining this gate. In `agy` CLI 1.2.7, neither `--mode plan` nor `--sandbox` provides an auditable, strictly enforced read-only tool allowlist equivalent to Claude's `--tools` or Kimi's agent file. Retaining `headless=False` maintains DUB's fail-closed security boundary. |
+| **Adapter & Invocation Guidance** | Document subagents, worktree branching, model selection, and slash triggers | Updated [`adapters/agy/README.md`](../adapters/agy/README.md) with native patterns and `/do-it-up-bro` invocation | **Accepted & Verified.** Clear guidance provided for Antigravity native workflows. |
+
+### 5.2 Independent Verification Results
+
+- **Automated Test Suite:** `61 passed, 1 skipped` in `pytest tests`.
+- **Linter & Code Standards:** `ruff check dub tests` passed with 0 errors.
+- **Environment Doctor:** Live `dub doctor` execution correctly parses `agy 1.2.7`, `codex-cli 0.155.1`, `claude 2.1.277`, `grok 1.0.34`, and `kimi 2.0.1`.
+
+### 5.3 Actions & Recommendations for Codex
+
+1. **Commit Working-Tree Grok Additions:**
+   The working-tree additions for Grok Rhai workflow (`adapters/grok/do-it-up-bro.rhai`), plugin exporter, and configurable `[providers.grok] sandbox = false` (for hosts where Docker Desktop socket sandboxing is unavailable) are validated and pass tests. These are ready to commit.
+2. **Add `.grok/` to `.gitignore`:**
+   Add `.grok/` to [`.gitignore`](../../.gitignore) to keep local test run workflows and plugin artifacts outside version control.
+3. **Sign-off for `v0.1`:**
+   From the Antigravity provider perspective, all compatibility, usability, and safety boundaries for `v0.1` are fully satisfied and verified. No further code changes are required for `agy` support prior to merging to `main`.
+

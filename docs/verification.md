@@ -47,9 +47,11 @@ preserved only in its transport, not passed to federation children.
 
 ## Remaining boundaries
 
-No cross-provider live authentication, entitlement, native swarm/team execution,
-telemetry parser, or paid federation result was verified. Google safe unattended policy remains
-gated; no permissive fallback exists. Host synthesis is required. Best-effort
+A Grok-only restricted federation envelope was obtained (`24dc7239506f4168b35321d0b6d67479`)
+and the numeric telemetry parser accepted it. Claude and Kimi live calls in this
+environment still failed before a successful model response. Cross-provider
+entitlement, native swarm/team execution, and Google unattended policy remain
+unverified. Google stays gated; no permissive fallback exists. Host synthesis is required. Best-effort
 redaction cannot promise arbitrary secret removal or control vendor-owned logs.
 Windows federation, detached-process containment, automatic source snapshots,
 patch integration, live campaign resume, and learned routing are outside v0.1.
@@ -100,8 +102,11 @@ Kimi. Each was attempted once with a 90-second ceiling and no retries:
 | --- | --- | --- |
 | Claude | `3e7533f162834049986adee134d80eaa` | Exit 1; JSON result reported `is_error=true`, `terminal_reason=api_error`, and “Not logged in”. No successful model response. |
 | Grok | `0d88d7615be14a4185c1bacca46b904e` | Exit 1 before prompt; could not create its hooks directory in the current execution environment, and refused to start without its sandbox. |
+| Grok | `43b30b1b3a664edc8a18a5a1ca247c5d` | After creating `~/.grok/hooks`, still exit 1 in 0.2s: `--sandbox read-only` fail-closed because `/var/run/docker.sock` is a Docker Desktop symlink. No model call. |
+| Grok | `24dc7239506f4168b35321d0b6d67479` | Success with `[providers.grok] sandbox = false`. Exit 0, `stopReason=end_turn`, one-sentence answer, parser recorded `grok-4.6-build` and numeric usage. Tool allowlist/reader/dontAsk/no-subagents unchanged. ~$0.006. |
 | Kimi | `22ecfa2dce42434490628af0e6e0afd1` | Exit 1; watcher `EMFILE` and storage permission denial under its home directory. Only a version event reached stdout. |
 
-These runs demonstrate failure handling and the Grok fail-closed startup observed
-here. They do not establish model, auth, quota, or prompt success. The raw outputs
-are under `.dub/runs/<id>/` locally and remain outside Git.
+The first three authorized live attempts demonstrate failure handling. The later
+Grok retry (`24dc7239506f4168b35321d0b6d67479`) is a successful restricted
+federation envelope after `--sandbox off` on a host where read-only cannot
+apply. Raw outputs are under `.dub/runs/<id>/` locally and remain outside Git.

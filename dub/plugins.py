@@ -37,6 +37,7 @@ def export_plugin(provider: str, output: Path, dry_run: bool = False, force: boo
     )
     if provider == "grok":
         files["agents/dub-reader.md"] = root / "adapters/grok/readonly-agent.md"
+        files["workflows/dub-campaign.rhai"] = root / "adapters/grok/do-it-up-bro.rhai"
     for path in files.values():
         if not path.is_file() or path.is_symlink():
             raise ValueError(f"Invalid plugin source: {path}")

@@ -21,6 +21,7 @@ class ProviderConfig:
     command: str = ""
     model: str | None = None
     effort: str | None = None
+    sandbox: bool = True
 
 
 @dataclass(frozen=True)
@@ -96,7 +97,10 @@ def load_config(path: Path | str | None = None) -> Config:
     configured = {}
     for key, command in COMMANDS.items():
         settings = providers.get(key, {})
-        _keys(settings, {"enabled", "command", "model", "effort"}, f"providers.{key}")
+        allowed = {"enabled", "command", "model", "effort"}
+        if key == "grok":
+            allowed.add("sandbox")
+        _keys(settings, allowed, f"providers.{key}")
         command = settings.get("command", command)
         if command == "AUTO_DETECT":
             command = COMMANDS[key]
@@ -113,6 +117,11 @@ def load_config(path: Path | str | None = None) -> Config:
             command=command,
             model=_text(settings["model"], f"{key}.model") if "model" in settings else None,
             effort=_text(settings["effort"], f"{key}.effort") if "effort" in settings else None,
+            sandbox=(
+                _boolean(settings["sandbox"], f"{key}.sandbox")
+                if key == "grok" and "sandbox" in settings
+                else True
+            ),
         )
     run_dir = Path(_text(general.get("run_dir", ".dub/runs"), "run_dir")).expanduser()
     if not run_dir.is_absolute():

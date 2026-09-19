@@ -69,6 +69,14 @@ class CompatibilityTests(unittest.TestCase):
         self.assertNotIn("goal", grok)
         for flag in ("--tools", "--no-subagents", "--disable-web-search", "--max-turns", "--agent"):
             self.assertIn(flag, grok)
+        self.assertEqual(grok[grok.index("--sandbox") + 1], "read-only")
+        self.assertNotIn("--always-approve", grok)
+        self.assertNotIn("--yolo", grok)
+        unsandboxed = build_command("grok", "grok", "goal", sandbox=False)
+        self.assertEqual(unsandboxed[unsandboxed.index("--sandbox") + 1], "off")
+        for flag in ("--tools", "--no-subagents", "--disable-web-search", "--max-turns", "--agent"):
+            self.assertIn(flag, unsandboxed)
+        self.assertNotIn("--always-approve", unsandboxed)
         with self.assertRaises(ValueError):
             build_command("grok", "grok", "goal", effort="unlimited")
         with self.assertRaises(ValueError):

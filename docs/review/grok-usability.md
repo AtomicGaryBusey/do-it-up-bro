@@ -350,3 +350,110 @@ on DUB.
 4. Campaign workflow file + installer copy.
 5. JSON usage parser.
 6. Plugin packaging.
+
+---
+
+## Follow-up evaluation — 2026-09-19 (reviewer: Grok, after `802efdb`)
+
+Codex implemented the original must-list in `802efdb`. This section is the
+Grok-host review of that commit, plus the follow-on work done in this working
+tree so Codex can review and commit it. Do not merge to `main`.
+
+Verdict on `802efdb`: the original must-change items 1–5 and should-add items
+7–9 landed correctly and are tested. Item 6 (saved workflow) and a live Grok
+envelope were still open; both are addressed below, uncommitted.
+
+### Evaluation of `802efdb` against this report
+
+| Original request | On `802efdb` | Notes |
+| --- | --- | --- |
+| Depth-1 subagents; `explore`/`plan` docs split | Done | Adapter documents root-only spawn and the official vs installed-guide shell disagreement |
+| Campaign = Rhai API, no invented script | Partial | API documented; no `.rhai` shipped yet (no offline validator) |
+| Safe federation flags + reader agent | Done | `--tools read_file,grep,list_dir`, `--no-subagents`, `--disable-web-search`, `--max-turns 12`, `--agent` → `readonly-agent.md`, `--prompt-file`, `--permission-mode dontAsk`. No `--yolo` |
+| Effort validation | Done | Canonical Grok levels |
+| `GROK_HOME` | Done | Install dest + child env, Grok-only |
+| JSON usage parser | Done, unproven on live JSON | `dub/telemetry.py`; fail-closed on incomplete/partial |
+| Grok-first README | Done | Install snippet + `synthesis_provider = "grok"` |
+| Plugin export | Done | `dub plugin`; not marketplace publish |
+| Learned routing / ACP / auto-merge | Correctly excluded | |
+
+Independently re-run on this machine after `802efdb`: **61 passed, 1 skipped**.
+
+### Live federation (was the remaining gate)
+
+Authorized Grok-only calls, self-contained prompt, other providers disabled.
+
+| Run | Result |
+| --- | --- |
+| `0d88d7615be14a4185c1bacca46b904e` (Codex, on `802efdb`) | Exit 1 before prompt: could not create `~/.grok/hooks` under that execution environment |
+| `43b30b1b3a664edc8a18a5a1ca247c5d` (this session, default sandbox) | Exit 1 in 0.2s. `~/.grok` was writable and `hooks/` existed. Grok 1.0.34 **fail-closes** `--sandbox read-only` because `/var/run/docker.sock` → `~/.docker/run/docker.sock` (Docker Desktop symlink). No model call |
+| `24dc7239506f4168b35321d0b6d67479` (this session, `sandbox = false`) | **Success.** Exit 0, `stopReason=end_turn`, one-sentence answer, `model_observed=grok-4.6-build`, numeric `usage`/`modelUsage`/`num_turns` parsed into the ledger. About $0.006. Artifacts gitignored under `.dub/runs/` |
+
+`federation.md` previously said Grok's sandbox can fail open. On 1.0.34 it
+fail-closes. Tool restriction remains the principal worker boundary.
+
+### Actions in this working tree (for Codex to review)
+
+Not committed. Intended as one follow-up commit on `dub/v0.1`.
+
+1. **`[providers.grok] sandbox`** (`dub/config.py`, `dub/providers/base.py`,
+   `dub/supervisor.py`). Default **true** → `--sandbox read-only`. `false` →
+   **`--sandbox off`** (not flag omission: Grok still honors `[sandbox] profile`
+   in config if the CLI flag is absent). Other providers reject the key.
+   Tool allowlist, reader agent, `dontAsk`, `--no-subagents` unchanged.
+2. **Live-config example** in `DUB.toml.example` documenting the Docker Desktop
+   socket case.
+3. **`dub-campaign` workflow**, native `validate_only` on two canned-host paths
+   (goal-only; `tournament: true`):
+   - `adapters/grok/do-it-up-bro.rhai` (packaged; add `*.rhai` to the grok
+     data-files glob)
+   - `.grok/workflows/dub-campaign.rhai` (project discovery; **do commit this
+     file**. It is the runnable copy, not session junk)
+   Named `dub-campaign` so it does not collide with the `/do-it-up-bro` skill.
+   `capability_mode: "read-only"`; no merge. After adversarial review, synthesis
+   writes scout/alternative/verify output into `scratch/synthesis.md`, not just
+   the goal. Empty `args.goal` pauses.
+4. **Plugin export** includes `workflows/dub-campaign.rhai`. Grok plugin
+   discovery **does not load** `workflows/` (`grok plugin validate` reports 0
+   workflow dirs). Docs now say to copy the file into `.grok/workflows/` or
+   `~/.grok/workflows/`. `dub install` still does not overwrite user workflows.
+5. Adapter, `docs/federation.md`, `docs/plugins.md`,
+   `docs/review/disposition.md`, `docs/verification.md` updated for the live
+   envelope and the sandbox fail-close.
+6. Tests: `tests/test_compatibility.py`, `tests/test_config.py`,
+   `tests/test_plugins.py`. Suite after these edits: **61 passed, 1 skipped**.
+
+A **live** `/workflow dub-campaign` run was not started. Offer:
+
+```text
+/workflow dub-campaign {"goal":"Map remaining DUB v0.1 gaps without editing files."}
+```
+
+### Disposition wording Codex should fix while committing
+
+`docs/review/disposition.md` Grok 4–6 row still says `sandbox = false` *omits*
+the OS profile. Current code passes `--sandbox off`. Update that sentence in
+the same commit.
+
+### Remaining (not blocking this follow-up)
+
+- Claude and Kimi live federation still failed in this environment (auth /
+  storage). Out of Grok scope.
+- `dub install --provider grok` does not copy the workflow into
+  `~/.grok/workflows/`. Intentional until file-level conflict/backup matches
+  the skill installer. Personal installs copy the packaged `.rhai` by hand or
+  use the project `.grok/workflows/` path.
+- Plugin export is not a working campaign install path on Grok 1.0.34.
+- Canned-host `validate_only` is not a live-tool proof.
+- `plan()` dry-run still validates Grok with `-p`; live uses `--prompt-file`.
+  Pre-existing; not introduced here.
+
+### Do not do in the follow-up commit
+
+- Do not add `--always-approve` / `--yolo`.
+- Do not default `sandbox` to false.
+- Do not merge to `main`.
+- Do not commit `.dub/` live-run artifacts.
+- Do not put Grok tool IDs in the universal `SKILL.md`.
+- Do not treat `.grok/` as something to gitignore wholesale; commit only
+  `.grok/workflows/dub-campaign.rhai`.

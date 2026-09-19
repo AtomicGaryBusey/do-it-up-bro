@@ -18,6 +18,7 @@ def test_export(provider, manifest, tmp_path):
     assert (output / "skills/do-it-up-bro/references/host-adapter.md").is_file()
     if provider == "grok":
         assert (output / "agents/dub-reader.md").is_file()
+        assert (output / "workflows/dub-campaign.rhai").is_file()
     (output / "user-note.txt").write_text("preserve me")
     assert export_plugin(provider, output)["action"] == "conflict"
     result = export_plugin(provider, output, force=True)
